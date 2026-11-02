@@ -1,0 +1,25 @@
+name: Restore project tree
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Restore source files and directory structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q markytics-project-source.zip -d "$RUNNER_TEMP/markytics-source"
+          git ls-files -z | xargs -0 -r git rm -f --
+          cp -a "$RUNNER_TEMP/markytics-source/." .
+          git add -A
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Restore project directory structure'
+          git push origin HEAD:main
