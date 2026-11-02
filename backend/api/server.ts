@@ -3,7 +3,6 @@ import cookieParser from 'cookie-parser';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
 
 // Ensure upload directory exists
 const uploadDir = path.join(process.cwd(), 'uploads', 'resumes');
@@ -1718,26 +1717,8 @@ app.get('/api/v1/notifications/outbox/', (req: Request, res: Response) => {
   return successResponse(res, emailOutbox);
 });
 
-// Start Express Server + Mount Vite in Development
-async function startServer() {
-  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT = Number.parseInt(process.env.PORT || '8000', 10);
 
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.join(process.cwd(), 'dist')));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
-    });
-  }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Markytics Server] Express API running on http://0.0.0.0:${PORT}`);
-  });
-}
-
-startServer();
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[Markytics API] Express server running on http://0.0.0.0:${PORT}`);
+});

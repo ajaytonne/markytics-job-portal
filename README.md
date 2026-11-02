@@ -8,16 +8,21 @@ A full-stack Job Portal and Recruitment Management System built for the **Markyt
 
 ```mermaid
 graph TD
-    Client[React + Vite Frontend\nRole-Based SPA] -->|Session Cookies & CSRF| API[Django REST Framework API / Express REST Engine]
-    API -->|Django ORM / SQL| DB[(PostgreSQL Database)]
-    API -->|Upload / Download Guard| Storage[(Private Media Storage / Resumes)]
-    API -->|Transactional Event| Outbox[(Email Notification Outbox)]
-    Outbox -->|Worker Loop| SMTP[Local Email Capture / Mailpit]
+    Client[frontend/\nReact + Vite SPA] -->|/api proxy| API[backend/api/\nExpress REST API]
+    API -->|Private resume uploads| Storage[(backend/api/uploads)]
 ```
+
+The application source is separated by runtime:
+
+- `frontend/` contains the React UI, Vite configuration, and frontend dependencies.
+- `backend/api/` contains the Express API and its dependencies.
+- `backend/django/` preserves the separate Django scaffold; it is not used by the current UI/API.
 
 ---
 
 ## 2. Entity-Relationship (ER) Diagram
+
+This diagram describes the preserved Django scaffold. The active Express API currently uses in-memory demo data.
 
 ```mermaid
 erDiagram
@@ -132,27 +137,29 @@ Backend Enforcement Rules:
 
 ---
 
-## 6. Docker & Local Setup Instructions
+## 6. Local Setup
 
 ### Prerequisites
-- Docker & Docker Compose installed.
+- Node.js 20.19+ and npm.
 
 ### Quick Start
 ```bash
-# 1. Clone repository and start services
-docker-compose up --build -d
+# Install dependencies for both workspaces
+npm install
 
-# 2. Run Database Migrations
-docker-compose exec backend python manage.py migrate
-
-# 3. Seed Demo Data (Markytics jobs, candidate/recruiter accounts)
-docker-compose exec backend python manage.py seed_demo_data
-
-# 4. Access Platform
-# Frontend Web App: http://localhost:3000
-# Django Backend REST API: http://localhost:8000/api/v1/
-# Mailpit Local Email Capture Inspector: http://localhost:8025
+# Start the API and frontend together
+npm run dev
 ```
+
+The frontend is at `http://localhost:3000`. The Express API is at `http://localhost:8000/api/v1/`; Vite proxies `/api` requests to it during development.
+
+To run the separated services with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The Django scaffold under `backend/django/` is separate and is not started by this Compose setup.
 
 ---
 
@@ -166,26 +173,17 @@ docker-compose exec backend python manage.py seed_demo_data
 
 ---
 
-## 8. Automated Tests & Verification
+## 8. Build & Type Checks
 
 ```bash
-# Run backend test suite
-docker-compose exec backend python manage.py test tests
+npm run lint
+npm run build
 ```
-
-Tests cover:
-- Registration cannot self-assign `ADMIN` role.
-- Role-based privilege escalation rejection.
-- Recruiter cross-user job isolation.
-- Unique candidate application constraint (1 app per job).
-- Valid vs invalid application stage transitions.
-- Private resume download security guard.
 
 ---
 
-## 9. Production Hardening Checklist
+## 9. Runtime Notes
 
-1. **Secrets**: Set `DJANGO_SECRET_KEY` and set `DEBUG="False"` in production environment.
-2. **Cookies**: Set `CSRF_COOKIE_SECURE=True` and `SESSION_COOKIE_SECURE=True` when running behind HTTPS.
-3. **Malware Scanning**: In production, pass uploaded resume PDFs through an antivirus service (e.g. ClamAV) prior to storing in media volume.
-4. **Rate Limiting**: Enable Django REST Framework throttling (`ScopedRateThrottle`) on sensitive login and password reset endpoints.
+- The current Express API keeps demo users, jobs, and applications in memory; data resets when the API restarts.
+- Uploaded resumes are stored under `backend/api/uploads/` and are excluded from source control.
+- The Django scaffold is preserved for separate development and is not the active API implementation.
