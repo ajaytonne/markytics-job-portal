@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - resume_storage:/app/backend/api/uploads
+      - resume_storage:/app/uploads
 
   frontend:
     build:

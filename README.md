@@ -161,6 +161,12 @@ docker compose up --build
 
 The Django scaffold under `backend/django/` is separate and is not started by this Compose setup.
 
+### Public hosting on Render
+
+The root `Dockerfile` builds the frontend and runs the Express API, which serves both from one public origin. To deploy, open the repository in Render and create a Blueprint deployment from `render.yaml`.
+
+The Blueprint uses Render's free web-service plan. Free instances can sleep when idle, and the Express API stores demo data in memory, so changes to demo users, jobs, and applications reset when the service restarts. Resume uploads use the service's local filesystem and are not persistent across redeploys.
+
 ---
 
 ## 7. Demo Account Credentials (Quick Selector)

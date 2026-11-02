@@ -3,9 +3,11 @@ import cookieParser from 'cookie-parser';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 // Ensure upload directory exists
-const uploadDir = path.join(process.cwd(), 'uploads', 'resumes');
+const uploadDir = path.join(projectRoot, 'uploads', 'resumes');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -1717,8 +1719,20 @@ app.get('/api/v1/notifications/outbox/', (req: Request, res: Response) => {
   return successResponse(res, emailOutbox);
 });
 
-const PORT = Number.parseInt(process.env.PORT || '8000', 10);
+function startServer() {
+  const PORT = Number.parseInt(process.env.PORT || '8000', 10);
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Markytics API] Express server running on http://0.0.0.0:${PORT}`);
-});
+  if (process.env.NODE_ENV === 'production') {
+    const frontendDist = path.join(projectRoot, 'frontend', 'dist');
+    app.use(express.static(frontendDist));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[Markytics API] Express server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+startServer();

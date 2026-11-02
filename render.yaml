@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: markytics-job-portal
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/categories/
+    envVars:
+      - key: NODE_ENV
+        value: production
