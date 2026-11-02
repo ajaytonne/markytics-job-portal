@@ -1,0 +1,31 @@
+name: Restore source archive
+on:
+  push:
+    branches: [main]
+    paths:
+      - markytics-project-source.zip
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Restore project files and directories
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q markytics-project-source.zip -d "$RUNNER_TEMP/markytics-source"
+          git ls-files -z | grep -zv '^\.github/' | xargs -0 -r git rm -f --
+          cp -a "$RUNNER_TEMP/markytics-source/." .
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No source changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Restore separated frontend and backend source'
+          git push origin HEAD:main
